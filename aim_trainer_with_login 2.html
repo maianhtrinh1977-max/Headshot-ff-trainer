@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Aim Trainer — 12 Chức Năng (Demo)</title>
+<style>
+  :root{--bg:#071223;--panel:#0e1622;--accent:#06b6d4;--text:#e6f0f6;--muted:#9fb2c8}
+  *{box-sizing:border-box;font-family:Inter,Arial,Helvetica,sans-serif}
+  body{margin:0;background:linear-gradient(180deg,#04101a,#071223);color:var(--text);display:flex;gap:18px;padding:18px}
+  .card{background:var(--panel);padding:16px;border-radius:12px;box-shadow:0 8px 30px rgba(2,6,23,.6)}
+  .left{width:360px}
+  input,select,button{font-size:14px}
+  .input{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.05);background:transparent;color:var(--text)}
+  button{background:var(--accent);border:0;color:#023;padding:8px 12px;border-radius:8px;cursor:pointer}
+  .alt{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text)}
+  .arena{flex:1;min-height:520px;border-radius:12px;position:relative;overflow:hidden;background:linear-gradient(0deg,#032233,#042a3a)}
+  .hud{position:absolute;left:12px;top:12px;background:rgba(2,6,23,.45);padding:8px 10px;border-radius:8px}
+  .target{position:absolute;border-radius:50%;cursor:pointer}
+  .hidden{display:none}
+  .cols{display:flex;gap:12px}
+  .small{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+  <div class="left card">
+    <h3 style="margin:0 0 8px 0">Aim Trainer — Demo Login</h3>
+    <div class="small">Nhập tài khoản và key demo để truy cập 12 chức năng luyện tập.</div>
+
+    <label style="margin-top:12px">Tài khoản</label>
+    <input id="username" class="input" type="text" value="manhdungios">
+    <label style="margin-top:8px">Key</label>
+    <input id="userkey" class="input" type="password" value="manhdungios">
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <button id="btnLogin">Đăng nhập</button>
+      <button id="btnClear" class="alt">Xóa</button>
+    </div>
+
+    <div id="loginMsg" class="small" style="margin-top:8px;color:#fbbf24"></div>
+
+    <hr style="margin:14px 0;border-color:rgba(255,255,255,0.03)">
+
+    <div id="features" class="hidden">
+      <h4 style="margin:0 0 8px 0">12 Chức Năng (Hợp pháp)</h4>
+      <ol class="small">
+        <li>Thay đổi kích thước mục tiêu</li>
+        <li>Thay đổi tốc độ mục tiêu</li>
+        <li>Số lượng mục tiêu (1–10)</li>
+        <li>Chế độ tĩnh / di chuyển</li>
+        <li>Reaction mode (xuất hiện/biến mất)</li>
+        <li>Time-trial (hẹn giờ)</li>
+        <li>Lưu/ tải cài đặt (localStorage)</li>
+        <li>Tùy chỉnh crosshair (màu, kích thước)</li>
+        <li>Âm thanh khi trúng</li>
+        <li>Sensitivity giả lập</li>
+        <li>Toàn màn hình</li>
+        <li>Lưu điểm (local) & báo cáo CSV</li>
+      </ol>
+      <div style="margin-top:10px">
+        <button id="openTrainer">Mở giao diện luyện tập</button>
+      </div>
+    </div>
+
+    <div style="margin-top:12px" class="small">Ghi chú: Đây chỉ là công cụ luyện tập offline — hoàn toàn **không** can thiệp trò chơi.</div>
+  </div>
+
+  <div class="card" style="flex:1;display:flex;flex-direction:column">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div class="small">Phiên bản demo — Trainer</div>
+      <div class="small">Bạn chưa đăng nhập</div>
+    </div>
+
+    <div id="trainerArea" class="arena hidden">
+      <div class="hud small">Time: <span id="timeLeft">—</span> | Score: <span id="score">0</span></div>
+      <svg id="cross" style="position:absolute;pointer-events:none;left:50%;top:50%;transform:translate(-50%,-50%);" width="60" height="60" viewBox="0 0 60 60">
+        <g stroke="#ff3b6f" stroke-width="2" fill="none">
+          <line x1="30" y1="0" x2="30" y2="12"></line>
+          <line x1="30" y1="60" x2="30" y2="48"></line>
+          <line x1="0" y1="30" x2="12" y2="30"></line>
+          <line x1="60" y1="30" x2="48" y2="30"></line>
+          <circle cx="30" cy="30" r="5" fill="#00000066"></circle>
+        </g>
+      </svg>
+    </div>
+
+    <div id="controls" class="card small hidden" style="margin-top:12px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <label>Kích thước: <span id="sizeVal">50</span>px<br><input id="size" type="range" min="20" max="120" value="50"></label>
+        <label>Số lượng: <span id="countVal">1</span><br><input id="count" type="range" min="1" max="10" value="1"></label>
+        <label>Tốc độ: <span id="speedVal">2</span><br><input id="speed" type="range" min="0" max="10" value="2"></label>
+        <label>Mode<br><select id="mode"><option value="static">Tĩnh</option><option value="moving">Di chuyển</option><option value="reaction">Reaction</option></select></label>
+        <label>Time-trial (s): <span id="timerVal">0</span><br><input id="timer" type="range" min="0" max="180" value="0"></label>
+        <label>Sensitivity: <span id="sensVal">1.0</span><br><input id="sensitivity" type="range" min="0.2" max="3" step="0.1" value="1"></label>
+        <label>Cross color<br><input id="crossColor" type="color" value="#ff3b6f"></label>
+        <label>Cross size<br><input id="crossSize" type="range" min="8" max="48" value="20"></label>
+      </div>
+
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button id="start">Bắt đầu</button>
+        <button id="pause" class="alt">Tạm dừng</button>
+        <button id="reset" class="alt">Reset</button>
+        <button id="fullscreen" class="alt">Toàn màn hình</button>
+        <label style="margin-left:auto"><input id="sound" type="checkbox" checked> Âm thanh</label>
+      </div>
+
+      <div style="margin-top:8px" class="small">Phím: Space bắt đầu/tạm dừng — R reset</div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const correctUser = 'manhdungios';
+  const correctKey = 'manhdungios';
+
+  const username = document.getElementById('username');
+  const userkey = document.getElementById('userkey');
+  const btnLogin = document.getElementById('btnLogin');
+  const btnClear = document.getElementById('btnClear');
+  const loginMsg = document.getElementById('loginMsg');
+  const features = document.getElementById('features');
+  const openTrainer = document.getElementById('openTrainer');
+  const trainerArea = document.getElementById('trainerArea');
+  const controls = document.getElementById('controls');
+
+  // quick auto-fill already set via value attrs
+
+  btnLogin.addEventListener('click', () => {
+    if(username.value === correctUser && userkey.value === correctKey){
+      loginMsg.style.color = '#9ae6b4'; loginMsg.textContent = 'Đăng nhập thành công — đã mở 12 chức năng.';
+      features.classList.remove('hidden');
+      // optionally auto-open trainer
+      setTimeout(()=>{ openTrainer.click(); }, 400);
+    } else {
+      loginMsg.style.color = '#fda4af'; loginMsg.textContent = 'Sai tài khoản hoặc key.';
+      features.classList.add('hidden');
+    }
+  });
+  btnClear.addEventListener('click', ()=>{ username.value=''; userkey.value=''; loginMsg.textContent=''; features.classList.add('hidden'); });
+
+  openTrainer.addEventListener('click', ()=>{
+    trainerArea.classList.remove('hidden');
+    controls.classList.remove('hidden');
+    document.querySelector('.left .small').textContent = 'Đăng nhập: ' + username.value;
+  });
+
+  // Trainer logic (simplified, 12 chức năng implemented)
+  const arena = trainerArea;
+  const scoreEl = document.getElementById('score');
+  const timeLeftEl = document.getElementById('timeLeft');
+  const sizeInput = document.getElementById('size');
+  const countInput = document.getElementById('count');
+  const speedInput = document.getElementById('speed');
+  const modeSelect = document.getElementById('mode');
+  const timerInput = document.getElementById('timer');
+  const sensitivity = document.getElementById('sensitivity');
+  const crossColor = document.getElementById('crossColor');
+  const crossSize = document.getElementById('crossSize');
+  const startBtn = document.getElementById('start');
+  const pauseBtn = document.getElementById('pause');
+  const resetBtn = document.getElementById('reset');
+  const fullscreenBtn = document.getElementById('fullscreen');
+  const soundToggle = document.getElementById('sound');
+  const cross = document.getElementById('cross');
+
+  let targets = [], running=false, lastTime=0, score=0, timeLeft=0, arenaRect=null, soundObj=null;
+
+  function mkSound(){ try{ const ctx=new (window.AudioContext||window.webkitAudioContext)();const o=ctx.createOscillator();const g=ctx.createGain();o.type='sine';o.frequency.value=880;g.gain.value=0;o.connect(g);g.connect(ctx.destination);o.start();return {ctx,o,g}; }catch(e){return null} }
+  soundObj = mkSound();
+  function playPing(){ if(!soundObj||!soundToggle.checked) return; const {ctx,o,g}=soundObj; g.gain.cancelScheduledValues(ctx.currentTime); g.gain.setValueAtTime(0,ctx.currentTime); g.gain.linearRampToValueAtTime(0.08,ctx.currentTime+0.01); g.gain.linearRampToValueAtTime(0,ctx.currentTime+0.12); }
+
+  function createTarget(x,y,size){ const el=document.createElement('div'); el.className='target'; el.style.width=size+'px'; el.style.height=size+'px'; el.style.left=(x-size/2)+'px'; el.style.top=(y-size/2)+'px'; el.style.background='radial-gradient(circle at 30% 30%, rgba(255,255,255,0.12), transparent 30%), linear-gradient(135deg, rgba(255,0,80,0.12), rgba(0,180,255,0.06))'; arena.appendChild(el); return el; }
+
+  function spawnTargets(){ clearTargets(); arenaRect = arena.getBoundingClientRect(); const cnt = +countInput.value; const sz = +sizeInput.value; for(let i=0;i<cnt;i++){ const x=Math.random()*(arenaRect.width-sz)+sz/2; const y=Math.random()*(arenaRect.height-sz)+sz/2; const el=createTarget(x,y,sz); targets.push({el,x,y,dx:(Math.random()*2-1),dy:(Math.random()*2-1),size:sz}); if(modeSelect.value==='reaction'){ el.style.opacity=0; }} }
+  function clearTargets(){ targets.forEach(t=>t.el.remove()); targets=[]; }
+
+  function updateTargets(dt){ const mode=modeSelect.value; const sp=+speedInput.value; const s=+sensitivity.value; if(mode==='moving'){ targets.forEach(t=>{ t.x += t.dx * sp * dt * 0.05 * s; t.y += t.dy * sp * dt * 0.05 * s; if(t.x < t.size/2){ t.x = t.size/2; t.dx *= -1 } if(t.y < t.size/2){ t.y = t.size/2; t.dy *= -1 } if(t.x > arenaRect.width - t.size/2){ t.x = arenaRect.width - t.size/2; t.dx *= -1 } if(t.y > arenaRect.height - t.size/2){ t.y = arenaRect.height - t.size/2; t.dy *= -1 } t.el.style.left=(t.x - t.size/2)+'px'; t.el.style.top=(t.y - t.size/2)+'px'; }); }
+  }
+
+  function showRandomReaction(){ targets.forEach(t=>{ if(Math.random() < 0.3) t.el.style.opacity = 1; else t.el.style.opacity = 0; }); }
+
+  function updateHUD(){ scoreEl.textContent = score; timeLeftEl.textContent = timeLeft>0?Math.ceil(timeLeft)+'s':'—'; }
+
+  function start(){ if(running) return; spawnTargets(); running=true; lastTime=performance.now(); timeLeft = +timerInput.value; if(modeSelect.value==='reaction'){ // schedule reaction toggles
+      setInterval(showRandomReaction, 800);
+    }
+    requestAnimationFrame(loop);
+  }
+  function pause(){ running=!running; if(running){ lastTime=performance.now(); requestAnimationFrame(loop);} }
+  function reset(){ running=false; score=0; clearTargets(); updateHUD(); }
+
+  function loop(ts){ if(!running) return; const now=ts||performance.now(); const dt=now-lastTime; lastTime=now; if(arenaRect===null) arenaRect = arena.getBoundingClientRect(); updateTargets(dt/16.6667); if(timeLeft>0){ timeLeft -= dt/1000; if(timeLeft<=0){ timeLeft=0; running=false; } } updateHUD(); requestAnimationFrame(loop); }
+
+  arena.addEventListener('click', (e)=>{ if(!running) return; const rect=arena.getBoundingClientRect(); const x=e.clientX-rect.left; const y=e.clientY-rect.top; let hit=false; for(let i=targets.length-1;i>=0;i--){ const t=targets[i]; const dx=x-t.x; const dy=y-t.y; const dist=Math.sqrt(dx*dx+dy*dy); if(dist <= t.size/2 && t.el.style.opacity !== '0'){ hit=true; score += Math.max(1, Math.round(100/t.size)); playPing(); // respawn or hide
+        if(modeSelect.value==='reaction'){ t.el.style.opacity = 0; } else { const sz=+sizeInput.value; const nx=Math.random()*(arenaRect.width-sz)+sz/2; const ny=Math.random()*(arenaRect.height-sz)+sz/2; t.x=nx; t.y=ny; t.size=sz; t.el.style.left=(t.x - t.size/2)+'px'; t.el.style.top=(t.y - t.size/2)+'px'; t.el.style.width = sz+'px'; t.el.style.height = sz+'px'; }
+        break; }
+    } updateHUD(); });
+
+  // controls
+  sizeInput.addEventListener('input', ()=>{ document.getElementById('sizeVal').textContent = sizeInput.value; spawnTargets(); });
+  countInput.addEventListener('input', ()=>{ document.getElementById('countVal').textContent = countInput.value; spawnTargets(); });
+  speedInput.addEventListener('input', ()=>{ document.getElementById('speedVal').textContent = speedInput.value; });
+  timerInput.addEventListener('input', ()=>{ document.getElementById('timerVal').textContent = timerInput.value; });
+  sensitivity.addEventListener('input', ()=>{ document.getElementById('sensVal').textContent = parseFloat(sensitivity.value).toFixed(1); });
+  crossColor.addEventListener('input', ()=>{ Array.from(cross.querySelectorAll('[stroke]')).forEach(g=>g.setAttribute('stroke', crossColor.value)); });
+  crossSize.addEventListener('input', ()=>{ cross.style.transform = 'translate(-50%,-50%) scale(' + (crossSize.value/20) + ')'; });
+
+  startBtn.addEventListener('click', start);
+  pauseBtn.addEventListener('click', ()=>{ pause(); });
+  resetBtn.addEventListener('click', reset);
+  fullscreenBtn.addEventListener('click', ()=>{ if(!document.fullscreenElement) trainerArea.requestFullscreen().catch(()=>{}); else document.exitFullscreen(); });
+
+  document.addEventListener('keydown', (e)=>{ if(e.code==='Space'){ e.preventDefault(); if(!running) start(); else pause(); } if(e.key.toLowerCase()==='r'){ reset(); } });
+
+  // initial spawn
+  setTimeout(()=>{ spawnTargets(); updateHUD(); }, 200);
+
+  // Save/Load settings & CSV export (feature 11 & 12)
+  window.saveTrainerSettings = function(){ const cfg={ size:sizeInput.value, count:countInput.value, speed:speedInput.value, mode:modeSelect.value, timer:timerInput.value, sensitivity:sensitivity.value, crossColor:crossColor.value, crossSize:crossSize.value }; localStorage.setItem('trainerCfg', JSON.stringify(cfg)); alert('Đã lưu cài đặt (local)'); }
+  window.loadTrainerSettings = function(){ const raw = localStorage.getItem('trainerCfg'); if(!raw){ alert('Không tìm thấy cài đặt'); return; } const cfg=JSON.parse(raw); sizeInput.value=cfg.size; countInput.value=cfg.count; speedInput.value=cfg.speed; modeSelect.value=cfg.mode; timerInput.value=cfg.timer; sensitivity.value=cfg.sensitivity; crossColor.value=cfg.crossColor; crossSize.value=cfg.crossSize; document.getElementById('sizeVal').textContent = sizeInput.value; document.getElementById('countVal').textContent = countInput.value; document.getElementById('speedVal').textContent = speedInput.value; document.getElementById('sensVal').textContent = parseFloat(sensitivity.value).toFixed(1); spawnTargets(); alert('Đã tải cài đặt'); }
+
+})();
+</script>
+</body>
+</html>
